@@ -1,25 +1,31 @@
-import React, { useEffect, useRef } from 'react';
-import { Wind, Leaf, Sprout, Sun, CloudRain } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { Leaf, Sprout, Sun, CloudRain, Wind } from "lucide-react";
+import ProjectsModal from "./components/ProjectsModal";
+import ContactUs from "./components/ContactUs";
 
 function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  const openContact = () => setIsContactOpen(true);
+  const closeContact = () => setIsContactOpen(false);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
     const setSize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     setSize();
-    window.addEventListener('resize', setSize);
+    window.addEventListener("resize", setSize);
 
-    // Grass blade class
     class GrassBlade {
       x: number;
       height: number;
@@ -43,7 +49,7 @@ function App() {
       update(mouseX: number) {
         const distance = Math.abs(mouseX - this.x);
         const influence = Math.max(0, 1 - distance / 150);
-        const targetAngle = this.originalAngle - (influence * Math.PI / 4);
+        const targetAngle = this.originalAngle - (influence * Math.PI) / 4;
         this.angle += (targetAngle - this.angle) * this.speed;
       }
 
@@ -51,19 +57,13 @@ function App() {
         ctx.beginPath();
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.width;
-        
+
         const startY = canvas.height - 50;
         const endX = this.x + Math.cos(this.angle) * this.height;
         const endY = startY - Math.sin(this.angle) * this.height;
-        
+
         ctx.moveTo(this.x, startY);
         ctx.lineTo(endX, endY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(0, 40, 0, 0.1)';
-        ctx.moveTo(this.x + 2, startY);
-        ctx.lineTo(endX + 2, endY);
         ctx.stroke();
       }
     }
@@ -81,22 +81,21 @@ function App() {
       mouseX = e.clientX - rect.left;
     };
 
-    // Listen for mousemove on the window instead of just the canvas
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#87CEEB');
-      gradient.addColorStop(1, '#E0F6FF');
+      gradient.addColorStop(0, "#87CEEB");
+      gradient.addColorStop(1, "#E0F6FF");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#654321';
+      ctx.fillStyle = "#654321";
       ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
 
-      blades.forEach(blade => {
+      blades.forEach((blade) => {
         blade.update(mouseX);
         blade.draw(ctx);
       });
@@ -107,18 +106,15 @@ function App() {
     animate();
 
     return () => {
-      window.removeEventListener('resize', setSize);
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("resize", setSize);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
   return (
     <div className="relative w-full h-screen">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0"
-      />
-      
+      <canvas ref={canvasRef} className="absolute inset-0" />
+
       {/* Company Information */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="max-w-4xl w-full mx-4">
@@ -127,7 +123,7 @@ function App() {
               <Leaf className="w-10 h-10 text-green-600" />
               <h1 className="text-4xl font-bold text-gray-800">GreenScape Solutions</h1>
             </div>
-            
+
             <p className="text-xl text-gray-700 mb-8">
               Transforming spaces into sustainable, living landscapes since 1970
             </p>
@@ -158,24 +154,30 @@ function App() {
               </div>
             </div>
 
+
             <div className="flex gap-4">
               <button className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
                 Get a Free Quote
               </button>
-              <button className="border-2 border-green-600 text-green-600 px-6 py-3 rounded-lg hover:bg-green-50 transition-colors">
+              <button
+                className="border-2 border-green-600 text-green-600 px-6 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                onClick={openModal}
+              >
                 View Our Projects
+              </button>
+              <button
+className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors" onClick={openContact}>
+            Contact us
               </button>
             </div>
           </div>
+        
         </div>
+        
       </div>
 
-      <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow-lg">
-        <div className="flex items-center gap-2">
-          <Wind className="text-green-600" />
-          <p className="text-sm text-gray-700">Move your mouse to interact with the grass</p>
-        </div>
-      </div>
+      <ProjectsModal isOpen={isModalOpen} onClose={closeModal} />
+      <ContactUs isOpen={isContactOpen} onClose={closeContact} />
     </div>
   );
 }
